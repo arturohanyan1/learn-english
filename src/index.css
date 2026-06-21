@@ -1,9 +1,91 @@
-/* Minimal reset only — real styling comes later, once designs are in. */
+/* ===== Global tokens, theme defaults, fonts and keyframes ===== */
+
+/* Default (Dark) theme tokens. Themes override these on the app root at runtime. */
+:root {
+  --bg: #0e0e12;
+  --text: #f4f5f8;
+  --surface: #17171d;
+  --surface2: #20202a;
+  --accent: #7c5cff;
+  --accent2: #9d86ff;
+  --muted: #8a8a99;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --ok: #34d399;
+  --accent-soft: rgba(124, 92, 255, 0.16);
+
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  background: #08080b;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Hide scrollbars inside scrollable app surfaces but keep scrolling. */
+.vb-scroll {
+  scrollbar-width: none;
+}
+.vb-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes vbBlob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(14px, -18px) scale(1.12);
+  }
+}
+@keyframes vbHint {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+}
+@keyframes vbSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes vbUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vbConfetti {
+  to {
+    transform: translateY(420px) rotate(640deg);
+    opacity: 0;
+  }
 }

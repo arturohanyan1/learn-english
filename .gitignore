@@ -20,6 +20,7 @@ node_modules
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
 
 # Full raw word source (large; kept out of git)
 public/words/words.json
