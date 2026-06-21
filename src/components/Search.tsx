@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { Language, Word } from '../types'
 import { speak } from '../lib/speech'
+import { fitFontSize } from '../lib/text'
+import { useTranslation } from '../hooks/useTranslation'
 import { SearchIcon, SpeakerIcon } from './icons'
 
 interface Props {
@@ -32,7 +34,9 @@ export default function Search({ words, language }: Props) {
   }, [trimmed, words])
 
   const langLabel = language.toUpperCase()
-  const translation = result ? (language === 'ru' ? result.ru : result.hy) : undefined
+  const seed = result ? (language === 'ru' ? result.ru : result.hy) : undefined
+  const t = useTranslation(result?.word ?? '', language, seed, Boolean(result), 400)
+  const showText = t.status === 'done' && Boolean(t.text)
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '18px 24px 0', minHeight: 0 }}>
@@ -125,26 +129,34 @@ export default function Search({ words, language }: Props) {
               <span style={pill}>{langLabel}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '8px 0 4px' }}>
-              <span style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-.8px' }}>{result.word}</span>
+              <span style={{ fontSize: fitFontSize(result.word, 34, 11, 20), fontWeight: 700, letterSpacing: '-.8px', overflowWrap: 'anywhere', minWidth: 0 }}>{result.word}</span>
               <button onClick={() => speak(result.word)} style={speakBtn} aria-label="Pronounce">
                 <SpeakerIcon size={19} />
               </button>
             </div>
             {result.phon && <div style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 500, marginBottom: 16 }}>{result.phon}</div>}
-            <div
-              style={{
-                fontFamily: "'Noto Sans Armenian','Noto Sans',sans-serif",
-                fontSize: 30,
-                fontWeight: 700,
-                letterSpacing: '-.5px',
-                marginBottom: 12,
-                color: translation ? 'var(--text)' : 'var(--muted)',
-                fontStyle: translation ? 'normal' : 'italic',
-                opacity: translation ? 1 : 0.7,
-              }}
-            >
-              {translation ?? FALLBACK[language]}
-            </div>
+            {t.status === 'loading' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, minHeight: 36 }}>
+                <span style={spinner} />
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--muted)' }}>Translating…</span>
+              </div>
+            ) : (
+              <div
+                style={{
+                  fontFamily: "'Noto Sans Armenian','Noto Sans',sans-serif",
+                  fontSize: fitFontSize(showText ? (t.text as string) : FALLBACK[language], 30, 16, 18),
+                  fontWeight: 700,
+                  letterSpacing: '-.5px',
+                  marginBottom: 12,
+                  overflowWrap: 'anywhere',
+                  color: showText ? 'var(--text)' : 'var(--muted)',
+                  fontStyle: showText ? 'normal' : 'italic',
+                  opacity: showText ? 1 : 0.7,
+                }}
+              >
+                {showText ? t.text : FALLBACK[language]}
+              </div>
+            )}
             {result.def && <div style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--muted)', marginBottom: 14 }}>{result.def}</div>}
             {result.ex && (
               <div
@@ -212,4 +224,15 @@ const speakBtn: CSSProperties = {
   cursor: 'pointer',
   background: 'var(--accent-soft)',
   color: 'var(--accent2)',
+}
+
+const spinner: CSSProperties = {
+  width: 16,
+  height: 16,
+  flex: 'none',
+  borderRadius: '50%',
+  border: '2px solid var(--surface2)',
+  borderTopColor: 'var(--accent)',
+  animation: 'vbSpin .7s linear infinite',
+  display: 'inline-block',
 }

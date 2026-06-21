@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import type { Level, Word } from '../../types'
 import { LEVELS, levelIndex, levelName } from '../../lib/levels'
 import { speak } from '../../lib/speech'
+import { fitFontSize } from '../../lib/text'
 import { BookIcon, CheckIcon, ChevronLeftIcon, CloseIcon, HelpIcon, SpeakerIcon } from '../icons'
 
 interface Props {
@@ -199,7 +200,7 @@ export default function Onboarding({ words, availableLevels, onDone }: Props) {
               alignItems: 'center',
             }}
           >
-            <div style={{ fontSize: 42, fontWeight: 700, letterSpacing: '-1px', textAlign: 'center', marginBottom: 14 }}>
+            <div style={{ fontSize: fitFontSize(current.word, 42, 9, 22), fontWeight: 700, letterSpacing: '-1px', textAlign: 'center', marginBottom: 14, maxWidth: '100%', overflowWrap: 'anywhere' }}>
               {current.word}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

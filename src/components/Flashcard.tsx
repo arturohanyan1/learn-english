@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react'
 import type { CardStyle, Language, Word } from '../types'
+import { fitFontSize } from '../lib/text'
+import { useTranslation } from '../hooks/useTranslation'
 import { CheckIcon, SpeakerIcon } from './icons'
 
 interface Props {
@@ -18,8 +20,11 @@ const FALLBACK: Record<Language, string> = {
 }
 
 export default function Flashcard({ word, language, cardStyle, revealed, learned, onToggleLearned, onSpeak }: Props) {
-  const translation = language === 'ru' ? word.ru : word.hy
-  const hasTranslation = Boolean(translation)
+  const seed = language === 'ru' ? word.ru : word.hy
+  // Prefetch as soon as the card appears (front stays synchronous), but debounced
+  // so cards swiped past quickly never hit the API. Ready by the time you flip.
+  const t = useTranslation(word.word, language, seed, true, 450)
+  const showText = t.status === 'done' && Boolean(t.text)
   const langLabel = language.toUpperCase()
   const isAura = cardStyle === 1
   const isBold = cardStyle === 2
@@ -62,7 +67,18 @@ export default function Flashcard({ word, language, cardStyle, revealed, learned
             {word.pos && <span style={posPill}>{word.pos}</span>}
             <span style={levelPill}>{word.level}</span>
           </div>
-          <div style={{ fontSize: 46, fontWeight: 700, letterSpacing: '-1.2px', lineHeight: 1.05, textAlign: 'center', marginBottom: 14 }}>
+          <div
+            style={{
+              fontSize: fitFontSize(word.word, 46, 9, 22),
+              fontWeight: 700,
+              letterSpacing: '-1.2px',
+              lineHeight: 1.05,
+              textAlign: 'center',
+              marginBottom: 14,
+              maxWidth: '100%',
+              overflowWrap: 'anywhere',
+            }}
+          >
             {word.word}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -101,21 +117,29 @@ export default function Flashcard({ word, language, cardStyle, revealed, learned
               {learned ? 'Learned' : 'Mark'}
             </button>
           </div>
-          <div
-            style={{
-              fontFamily: "'Noto Sans Armenian','Noto Sans',sans-serif",
-              fontSize: 34,
-              fontWeight: 700,
-              letterSpacing: '-.5px',
-              lineHeight: 1.1,
-              marginBottom: 14,
-              color: hasTranslation ? 'var(--text)' : 'var(--muted)',
-              fontStyle: hasTranslation ? 'normal' : 'italic',
-              opacity: hasTranslation ? 1 : 0.7,
-            }}
-          >
-            {hasTranslation ? translation : FALLBACK[language]}
-          </div>
+          {t.status === 'loading' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, minHeight: 38 }}>
+              <span style={spinner} />
+              <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--muted)' }}>Translating…</span>
+            </div>
+          ) : (
+            <div
+              style={{
+                fontFamily: "'Noto Sans Armenian','Noto Sans',sans-serif",
+                fontSize: fitFontSize(showText ? (t.text as string) : FALLBACK[language], 34, 16, 18),
+                fontWeight: 700,
+                letterSpacing: '-.5px',
+                lineHeight: 1.1,
+                marginBottom: 14,
+                overflowWrap: 'anywhere',
+                color: showText ? 'var(--text)' : 'var(--muted)',
+                fontStyle: showText ? 'normal' : 'italic',
+                opacity: showText ? 1 : 0.7,
+              }}
+            >
+              {showText ? t.text : FALLBACK[language]}
+            </div>
+          )}
           {word.def && <div style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--muted)', marginBottom: 14 }}>{word.def}</div>}
           {word.ex && (
             <div
@@ -218,4 +242,15 @@ const speakBtn: CSSProperties = {
   cursor: 'pointer',
   background: 'var(--accent-soft)',
   color: 'var(--accent2)',
+}
+
+const spinner: CSSProperties = {
+  width: 16,
+  height: 16,
+  flex: 'none',
+  borderRadius: '50%',
+  border: '2px solid var(--surface2)',
+  borderTopColor: 'var(--accent)',
+  animation: 'vbSpin .7s linear infinite',
+  display: 'inline-block',
 }

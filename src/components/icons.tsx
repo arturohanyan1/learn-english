@@ -104,6 +104,14 @@ export function CheckCircleIcon(p: IconProps) {
   )
 }
 
+export function ZapIcon(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
+    </svg>
+  )
+}
+
 /** Speaker / volume icon (filled cone + sound waves). */
 export function SpeakerIcon({ size = 20, ...props }: IconProps) {
   return (

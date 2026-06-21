@@ -55,6 +55,7 @@ export default function Header({ level, language, onOpenSettings, onLanguage }: 
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 2 }}>
+        <LanguageToggle language={language} onLanguage={onLanguage} />
         <button
           onClick={onOpenSettings}
           aria-label="Settings"
@@ -74,7 +75,6 @@ export default function Header({ level, language, onOpenSettings, onLanguage }: 
         >
           <SettingsIcon size={18} />
         </button>
-        <LanguageToggle language={language} onLanguage={onLanguage} />
       </div>
     </div>
   )

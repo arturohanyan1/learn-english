@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
-import { CardsIcon, CheckCircleIcon, SearchIcon } from './icons'
+import { CardsIcon, CheckCircleIcon, SearchIcon, ZapIcon } from './icons'
 
-export type Tab = 'cards' | 'search' | 'learned'
+export type Tab = 'cards' | 'game' | 'search' | 'learned'
 
 interface Props {
   tab: Tab
@@ -14,19 +14,23 @@ export default function BottomNav({ tab, onTab, learnedCount }: Props) {
     <div
       style={{
         display: 'flex',
-        padding: '10px 24px 22px',
-        gap: 6,
+        padding: '10px 14px 22px',
+        gap: 2,
         borderTop: '1px solid var(--border)',
         background: 'var(--bg)',
       }}
     >
       <button onClick={() => onTab('cards')} style={navBtn(tab === 'cards')}>
         <CardsIcon size={24} />
-        <span style={{ fontSize: 11, fontWeight: 600 }}>Flashcards</span>
+        <span style={navLabel}>Flashcards</span>
+      </button>
+      <button onClick={() => onTab('game')} style={navBtn(tab === 'game')}>
+        <ZapIcon size={24} />
+        <span style={navLabel}>Game</span>
       </button>
       <button onClick={() => onTab('search')} style={navBtn(tab === 'search')}>
         <SearchIcon size={24} />
-        <span style={{ fontSize: 11, fontWeight: 600 }}>Search</span>
+        <span style={navLabel}>Search</span>
       </button>
       <button onClick={() => onTab('learned')} style={navBtn(tab === 'learned')}>
         <div style={{ position: 'relative' }}>
@@ -54,10 +58,16 @@ export default function BottomNav({ tab, onTab, learnedCount }: Props) {
             </span>
           )}
         </div>
-        <span style={{ fontSize: 11, fontWeight: 600 }}>Learned</span>
+        <span style={navLabel}>Learned</span>
       </button>
     </div>
   )
+}
+
+const navLabel: CSSProperties = {
+  fontSize: 10.5,
+  fontWeight: 600,
+  whiteSpace: 'nowrap',
 }
 
 function navBtn(active: boolean): CSSProperties {

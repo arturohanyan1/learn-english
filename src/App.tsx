@@ -11,6 +11,7 @@ import Loading from './components/Loading'
 import Onboarding from './components/onboarding/Onboarding'
 import Header from './components/Header'
 import Flashcards from './components/Flashcards'
+import GameMode from './components/GameMode'
 import Search from './components/Search'
 import LearnedWords from './components/LearnedWords'
 import Settings from './components/Settings'
@@ -78,6 +79,11 @@ export default function App() {
     setLearned((prev) => (isLearned ? prev.filter((x) => x !== id) : prev.includes(id) ? prev : [...prev, id]))
   }
 
+  // Game mode marks words known without the per-card confetti/sound.
+  function markLearned(id: number) {
+    setLearned((prev) => (prev.includes(id) ? prev : [...prev, id]))
+  }
+
   return (
     <div
       style={{
@@ -140,6 +146,7 @@ export default function App() {
                   onReview={() => setTab('learned')}
                 />
               )}
+              {tab === 'game' && <GameMode deck={deck} learned={learnedSet} language={language} onLearn={markLearned} />}
               {tab === 'search' && <Search words={words} language={language} />}
               {tab === 'learned' && <LearnedWords words={learnedWords} language={language} onUnlearn={toggleLearned} />}
               <BottomNav tab={tab} onTab={setTab} learnedCount={learnedSet.size} />
