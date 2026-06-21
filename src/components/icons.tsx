@@ -95,6 +95,15 @@ export function HelpIcon(p: IconProps) {
   )
 }
 
+export function CheckCircleIcon(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.5 12l2.5 2.5 4.5-5" />
+    </svg>
+  )
+}
+
 /** Speaker / volume icon (filled cone + sound waves). */
 export function SpeakerIcon({ size = 20, ...props }: IconProps) {
   return (

@@ -12,6 +12,7 @@ import Onboarding from './components/onboarding/Onboarding'
 import Header from './components/Header'
 import Flashcards from './components/Flashcards'
 import Search from './components/Search'
+import LearnedWords from './components/LearnedWords'
 import Settings from './components/Settings'
 import BottomNav, { type Tab } from './components/BottomNav'
 
@@ -61,6 +62,7 @@ export default function App() {
 
   const availableLevels = useMemo(() => levels.map((l) => l.level), [levels])
   const learnedSet = useMemo(() => new Set(learned), [learned])
+  const learnedWords = useMemo(() => words.filter((w) => learnedSet.has(w.id)), [words, learnedSet])
   const deck = useMemo(() => {
     if (!level) return []
     const allowed = new Set(levelsAtOrAbove(level))
@@ -128,12 +130,19 @@ export default function App() {
                 onOpenSettings={() => setSettingsOpen(true)}
                 onLanguage={setLanguage}
               />
-              {tab === 'cards' ? (
-                <Flashcards deck={deck} learned={learnedSet} language={language} cardStyle={cardStyle} onToggleLearned={toggleLearned} />
-              ) : (
-                <Search words={words} language={language} />
+              {tab === 'cards' && (
+                <Flashcards
+                  deck={deck}
+                  learned={learnedSet}
+                  language={language}
+                  cardStyle={cardStyle}
+                  onToggleLearned={toggleLearned}
+                  onReview={() => setTab('learned')}
+                />
               )}
-              <BottomNav tab={tab} onTab={setTab} />
+              {tab === 'search' && <Search words={words} language={language} />}
+              {tab === 'learned' && <LearnedWords words={learnedWords} language={language} onUnlearn={toggleLearned} />}
+              <BottomNav tab={tab} onTab={setTab} learnedCount={learnedSet.size} />
             </>
           )}
         </div>

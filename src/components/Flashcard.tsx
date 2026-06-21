@@ -8,7 +8,6 @@ interface Props {
   cardStyle: CardStyle
   revealed: boolean
   learned: boolean
-  onReveal: () => void
   onToggleLearned: () => void
   onSpeak: () => void
 }
@@ -18,16 +17,7 @@ const FALLBACK: Record<Language, string> = {
   hy: 'Թարգմանությունը՝ շուտով',
 }
 
-export default function Flashcard({
-  word,
-  language,
-  cardStyle,
-  revealed,
-  learned,
-  onReveal,
-  onToggleLearned,
-  onSpeak,
-}: Props) {
+export default function Flashcard({ word, language, cardStyle, revealed, learned, onToggleLearned, onSpeak }: Props) {
   const translation = language === 'ru' ? word.ru : word.hy
   const hasTranslation = Boolean(translation)
   const langLabel = language.toUpperCase()
@@ -36,10 +26,7 @@ export default function Flashcard({
   const faceBase = cardFace()
 
   return (
-    <div
-      onClick={onReveal}
-      style={{ position: 'relative', width: '100%', maxWidth: 320, height: 360, perspective: 1500, cursor: 'pointer' }}
-    >
+    <div style={{ position: 'relative', width: '100%', maxWidth: 320, height: 360, perspective: 1500 }}>
       {isAura && (
         <div
           style={{
@@ -52,27 +39,6 @@ export default function Flashcard({
             pointerEvents: 'none',
           }}
         />
-      )}
-
-      {learned && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 14,
-            right: 14,
-            zIndex: 20,
-            width: 30,
-            height: 30,
-            borderRadius: '50%',
-            background: 'var(--ok)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 6px 16px -4px var(--ok)',
-          }}
-        >
-          <CheckIcon size={16} stroke="#05140d" strokeWidth={3.2} />
-        </div>
       )}
 
       <div
@@ -88,27 +54,8 @@ export default function Flashcard({
         <div style={faceBase}>
           {isBold && (
             <>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 140,
-                  background: 'linear-gradient(180deg, var(--accent-soft), transparent)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 5,
-                  background: 'linear-gradient(90deg, var(--accent), var(--accent2))',
-                }}
-              />
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 140, background: 'linear-gradient(180deg, var(--accent-soft), transparent)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: 'linear-gradient(90deg, var(--accent), var(--accent2))' }} />
             </>
           )}
           <div style={{ position: 'absolute', top: 20, left: 20, display: 'flex', gap: 7 }}>
@@ -137,15 +84,22 @@ export default function Flashcard({
               animation: 'vbHint 2.4s ease-in-out infinite',
             }}
           >
-            Tap card or Reveal ↓
+            Tap to reveal
           </div>
         </div>
 
         {/* BACK */}
         <div style={{ ...faceBase, transform: 'rotateY(180deg)', alignItems: 'stretch', justifyContent: 'flex-start', padding: 26 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--muted)' }}>{word.word}</span>
-            <span style={levelPill}>{langLabel}</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{word.word}</span>
+              <span style={levelPill}>{langLabel}</span>
+            </div>
+            {/* toggle — only on the back; tap to mark, tap again to unmark */}
+            <button onClick={stop(onToggleLearned)} style={toggleBtn(learned)} aria-pressed={learned} aria-label={learned ? 'Learned — tap to unmark' : 'Mark as learned'}>
+              <CheckIcon size={14} strokeWidth={learned ? 3.2 : 2.6} />
+              {learned ? 'Learned' : 'Mark'}
+            </button>
           </div>
           <div
             style={{
@@ -162,9 +116,7 @@ export default function Flashcard({
           >
             {hasTranslation ? translation : FALLBACK[language]}
           </div>
-          {word.def && (
-            <div style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--muted)', marginBottom: 14 }}>{word.def}</div>
-          )}
+          {word.def && <div style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--muted)', marginBottom: 14 }}>{word.def}</div>}
           {word.ex && (
             <div
               style={{
@@ -182,17 +134,6 @@ export default function Flashcard({
               “{word.ex}”
             </div>
           )}
-          <div style={{ marginTop: 14 }}>
-            <button onClick={stop(onToggleLearned)} style={learned ? learnedBtn : markBtn}>
-              {learned ? (
-                <>
-                  <CheckIcon size={16} strokeWidth={3} /> Learned
-                </>
-              ) : (
-                'Mark as learned'
-              )}
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -222,6 +163,26 @@ function cardFace(): CSSProperties {
     justifyContent: 'center',
     padding: 30,
     overflow: 'hidden',
+  }
+}
+
+function toggleBtn(learned: boolean): CSSProperties {
+  return {
+    flex: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+    height: 30,
+    padding: '0 11px',
+    borderRadius: 999,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: 12.5,
+    fontWeight: 700,
+    background: learned ? 'var(--ok)' : 'transparent',
+    border: `1.5px solid var(--ok)`,
+    color: learned ? '#05140d' : 'var(--ok)',
+    transition: 'background .2s, color .2s',
   }
 }
 
@@ -257,32 +218,4 @@ const speakBtn: CSSProperties = {
   cursor: 'pointer',
   background: 'var(--accent-soft)',
   color: 'var(--accent2)',
-}
-
-const baseLearnBtn: CSSProperties = {
-  width: '100%',
-  height: 42,
-  borderRadius: 12,
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-  fontSize: 14,
-  fontWeight: 600,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 7,
-}
-
-const learnedBtn: CSSProperties = {
-  ...baseLearnBtn,
-  border: 'none',
-  background: 'var(--ok)',
-  color: '#05140d',
-}
-
-const markBtn: CSSProperties = {
-  ...baseLearnBtn,
-  background: 'transparent',
-  color: 'var(--text)',
-  border: '1px solid var(--border-strong)',
 }
