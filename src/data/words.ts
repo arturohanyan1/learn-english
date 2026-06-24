@@ -1,4 +1,5 @@
 import type { Level, LevelCount, Word } from '../types'
+import { shuffle } from '../lib/shuffle'
 import { SEED_TRANSLATIONS } from './seedTranslations'
 
 /** Raw entry shape as stored in public/words/<level>.json. */
@@ -56,6 +57,7 @@ export async function loadWords(): Promise<LoadedWords> {
     ),
   )
 
-  const words = files.flat().map(adapt)
+  // Shuffle once per load so flashcards aren't always in the same order.
+  const words = shuffle(files.flat().map(adapt))
   return { words, levels }
 }
