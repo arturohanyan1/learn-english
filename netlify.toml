@@ -1,0 +1,26 @@
+# Netlify build + hosting config for this Vite SPA.
+[build]
+  command = "yarn build"
+  publish = "dist"
+
+# SPA fallback — only applies to paths with no matching static file,
+# so real files (/sw.js, /words/*, /assets/*) are still served directly.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/words/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
