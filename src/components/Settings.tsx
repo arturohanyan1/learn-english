@@ -8,6 +8,7 @@ interface Props {
   onClose: () => void
   level: Level
   availableLevels: Level[]
+  levelProgress: Record<string, { learned: number; total: number }>
   onLevel: (level: Level) => void
   language: Language
   onLanguage: (language: Language) => void
@@ -22,7 +23,7 @@ interface Props {
 const CARD_STYLES = ['Minimal', 'Aura', 'Bold'] as const
 
 export default function Settings(props: Props) {
-  const { onClose, level, availableLevels, onLevel, language, onLanguage, cardStyle, onCardStyle, theme, onTheme, sound, onSound } = props
+  const { onClose, level, availableLevels, levelProgress, onLevel, language, onLanguage, cardStyle, onCardStyle, theme, onTheme, sound, onSound } = props
   const levelCards = LEVELS.filter((l) => availableLevels.includes(l.id))
 
   return (
@@ -35,7 +36,7 @@ export default function Settings(props: Props) {
           background: 'var(--bg)',
           borderTop: '1px solid var(--border)',
           borderRadius: '28px 28px 0 0',
-          padding: '18px 22px 26px',
+          padding: '18px 22px max(26px, calc(env(safe-area-inset-bottom) + 12px))',
           boxShadow: '0 -20px 50px -10px rgba(0,0,0,.6)',
           animation: 'vbUp .3s ease',
           maxHeight: '90%',
@@ -51,14 +52,20 @@ export default function Settings(props: Props) {
         </div>
 
         {/* LEVEL */}
-        <Section title="Your level" hint="Showing words at this level and above.">
+        <Section title="Your level" hint="Words you study come from the selected level.">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 9 }}>
             {levelCards.map((lv) => {
               const active = level === lv.id
+              const prog = levelProgress[lv.id]
+              const pct = prog && prog.total ? Math.round((prog.learned / prog.total) * 100) : 0
               return (
                 <button key={lv.id} onClick={() => onLevel(lv.id)} style={levelCard(active)}>
                   <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-.4px' }}>{lv.id}</span>
                   <span style={{ fontSize: 10.5, fontWeight: 500, color: 'var(--muted)', marginTop: 2 }}>{lv.name}</span>
+                  <div style={{ width: '100%', height: 4, borderRadius: 999, background: active ? 'rgba(0,0,0,.25)' : 'var(--surface2)', overflow: 'hidden', marginTop: 6 }}>
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 999, background: 'var(--ok)', transition: 'width .4s ease' }} />
+                  </div>
+                  <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--muted)', marginTop: 3 }}>{prog ? `${prog.learned}/${prog.total}` : ''}</span>
                 </button>
               )
             })}
@@ -202,7 +209,7 @@ function levelCard(active: boolean): CSSProperties {
     alignItems: 'center',
     cursor: 'pointer',
     fontFamily: 'inherit',
-    padding: '12px 0',
+    padding: '8px 8px',
     borderRadius: 13,
     background: active ? 'var(--accent-soft)' : 'var(--surface)',
     border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,

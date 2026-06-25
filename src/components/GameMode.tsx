@@ -3,6 +3,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import type { Language, Word } from '../types'
 import { speak } from '../lib/speech'
 import { fitFontSize } from '../lib/text'
+import { useTranslation } from '../hooks/useTranslation'
 import { CheckIcon, CloseIcon, SpeakerIcon, ZapIcon } from './icons'
 
 interface Props {
@@ -48,6 +49,12 @@ export default function GameMode({ deck, learned, language, onLearn }: Props) {
     setKnown(0)
     setRevealed(false)
   }, [deck])
+
+  // Translate the current word (prefetched on appear, debounced). Hook must run
+  // unconditionally, so it sits above the early returns and tolerates no card.
+  const current = pos < queue.length ? queue[pos] : undefined
+  const seed = current ? (language === 'ru' ? current.ru : current.hy) : undefined
+  const t = useTranslation(current?.word ?? '', language, seed, Boolean(current), 400)
 
   function restart() {
     setQueue(buildRound(deck, learnedRef.current))
@@ -130,7 +137,8 @@ export default function GameMode({ deck, learned, language, onLearn }: Props) {
   }
 
   const card = queue[pos]
-  const translation = language === 'ru' ? card.ru : card.hy
+  const tr = t.status === 'done' ? t.text : undefined
+  const translating = t.status === 'loading'
   const pct = Math.round((pos / queue.length) * 100)
   const knowHint = Math.max(0, Math.min(1, dragX / 90))
   const skipHint = Math.max(0, Math.min(1, -dragX / 90))
@@ -193,9 +201,16 @@ export default function GameMode({ deck, learned, language, onLearn }: Props) {
 
             {revealed ? (
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Noto Sans Armenian','Noto Sans',sans-serif", fontSize: fitFontSize(translation || '', 26, 12, 18), fontWeight: 700, color: translation ? 'var(--text)' : 'var(--muted)', fontStyle: translation ? 'normal' : 'italic' }}>
-                  {translation || (language === 'ru' ? 'нет перевода' : 'թարգմանություն չկա')}
-                </div>
+                {translating ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, minHeight: 32 }}>
+                    <span style={spinner} />
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--muted)' }}>Translating…</span>
+                  </div>
+                ) : (
+                  <div style={{ fontFamily: "'Noto Sans Armenian','Noto Sans',sans-serif", fontSize: fitFontSize(tr || '', 26, 12, 18), fontWeight: 700, color: tr ? 'var(--text)' : 'var(--muted)', fontStyle: tr ? 'normal' : 'italic' }}>
+                    {tr || (language === 'ru' ? 'нет перевода' : 'թարգմանություն չկա')}
+                  </div>
+                )}
                 {card.ex && <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--muted)', fontStyle: 'italic', marginTop: 8 }}>“{card.ex}”</div>}
               </div>
             ) : (
@@ -219,6 +234,17 @@ export default function GameMode({ deck, learned, language, onLearn }: Props) {
       </div>
     </div>
   )
+}
+
+const spinner: CSSProperties = {
+  width: 16,
+  height: 16,
+  borderRadius: '50%',
+  border: '2px solid var(--surface2)',
+  borderTopColor: 'var(--accent)',
+  animation: 'vbSpin .7s linear infinite',
+  display: 'inline-block',
+  flex: 'none',
 }
 
 const cardBox: CSSProperties = {

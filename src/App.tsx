@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CardStyle, Language, Level, LevelCount, ThemeId, Word } from './types'
 import { loadWords } from './data/words'
-import { levelsAtOrAbove } from './lib/levels'
 import { getTheme } from './lib/themes'
 import { fireConfetti } from './lib/confetti'
 import { playWin } from './lib/sound'
@@ -64,11 +63,19 @@ export default function App() {
   const availableLevels = useMemo(() => levels.map((l) => l.level), [levels])
   const learnedSet = useMemo(() => new Set(learned), [learned])
   const learnedWords = useMemo(() => words.filter((w) => learnedSet.has(w.id)), [words, learnedSet])
-  const deck = useMemo(() => {
-    if (!level) return []
-    const allowed = new Set(levelsAtOrAbove(level))
-    return words.filter((w) => allowed.has(w.level))
-  }, [words, level])
+  // Flashcards / game show the selected level only (progress is per level).
+  const deck = useMemo(() => (level ? words.filter((w) => w.level === level) : []), [words, level])
+
+  // Learned / total per level, for the progress bars on the settings level cards.
+  const levelProgress = useMemo(() => {
+    const map: Record<string, { learned: number; total: number }> = {}
+    for (const l of levels) map[l.level] = { learned: 0, total: l.count }
+    for (const w of learnedWords) {
+      const m = map[w.level]
+      if (m) m.learned++
+    }
+    return map
+  }, [levels, learnedWords])
 
   function toggleLearned(id: number) {
     const isLearned = learnedSet.has(id)
@@ -163,6 +170,7 @@ export default function App() {
             onClose={() => setSettingsOpen(false)}
             level={level}
             availableLevels={availableLevels}
+            levelProgress={levelProgress}
             onLevel={setLevel}
             language={language}
             onLanguage={setLanguage}

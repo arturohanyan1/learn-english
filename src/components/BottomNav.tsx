@@ -14,7 +14,7 @@ export default function BottomNav({ tab, onTab, learnedCount }: Props) {
     <div
       style={{
         display: 'flex',
-        padding: '10px 14px 22px',
+        padding: '10px 14px max(18px, env(safe-area-inset-bottom))',
         gap: 2,
         borderTop: '1px solid var(--border)',
         background: 'var(--bg)',
